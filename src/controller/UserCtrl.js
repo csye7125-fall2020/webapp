@@ -28,10 +28,10 @@ function validatePassword(password) {
 exports.createUser = (req, res) => {
     try {
         const errors = validationResult(req);
-        if(!req.body || req.body === "")
+        if (!req.body || req.body === "")
             return res.status(400).json({response: constants.BAD_REQUEST});
-        if(validateRequestBody(req.body))
-            return  res.status(400).json({response: constants.BAD_REQUEST});
+        if (validateRequestBody(req.body))
+            return res.status(400).json({response: constants.BAD_REQUEST});
         if (!errors.isEmpty() || !validatePassword(req.body.password))
             return res.status(400).json({response: constants.BAD_REQUEST})
 
@@ -76,10 +76,10 @@ exports.updateUser = (req, res) => {
         if (!auth || getEmail(auth) === "" || getPassword(auth) === "")
             return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
 
-        if(!req.body || Object.keys(req.body).length === 0)
+        if (!req.body || Object.keys(req.body).length === 0)
             return res.status(400).json({response: constants.BAD_REQUEST});
 
-        if(validateRequestBody(req.body)
+        if (validateRequestBody(req.body)
             || req.body.hasOwnProperty('email')
             || (req.body.password && !validatePassword(req.body.password)))
             return res.status(400).json({response: constants.BAD_REQUEST});
@@ -99,18 +99,18 @@ exports.updateUser = (req, res) => {
                 if (!resp)
                     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
 
-            req.body.email = getEmail(auth);
+                req.body.email = getEmail(auth);
                 userService
-                .updateUser(req.body, user[0])
-                .then(resolve_update)
-                .catch(error => res.status(400).json({response: error.message}));
+                    .updateUser(req.body, user[0])
+                    .then(resolve_update)
+                    .catch(error => res.status(400).json({response: error.message}));
             });
 
         }
 
         userService.isUserExist(getEmail(auth))
-        .then(resolve)
-        .catch(error => res.status(400).json({response: error.message}));
+            .then(resolve)
+            .catch(error => res.status(400).json({response: error.message}));
 
     } catch (error) {
         return res.status(400).json({response: error.message});
@@ -119,40 +119,25 @@ exports.updateUser = (req, res) => {
 
 exports.getUserInfoById = (req, res) => {
     try {
-        const auth = req.headers['authorization'];
-        if (!auth || getEmail(auth) === "" || getPassword(auth) === "")
-            return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
-
         const resolve_getId = (user) => {
-            res.status(200).json({
-                id: user.id,
-                email: user.email,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                createdAt: user.createdAt,
-                updatedAt: user.updatedAt
-            });
+            if(user) {
+               return res.status(200).json({
+                    id: user.id,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    createdAt: user.createdAt,
+                    updatedAt: user.updatedAt
+                });
+            }
+            return res.status(400).json({response: constants.BAD_REQUEST});
         }
 
-        const resolve = (user) => {
-            if (!user)
-                res.status(401).json({response: constants.ACCESS_FORBIDDEN});
-
-            bcrypt.compare(getPassword(auth), user[0].password, (err, resp) => {
-                if (err)
-                    return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
-                if (!resp)
-                    return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
-
-                userService
-                .getUserInfoById(req.params.id)
-                .then(resolve_getId)
-                .catch(error => res.status(400).json({response: error.message}));
-            });
-        }
-        userService.isUserExist(getEmail(auth))
-        .then(resolve)
+        userService
+        .getUserInfoById(req.params.id)
+        .then(resolve_getId)
         .catch(error => res.status(400).json({response: error.message}));
+
     } catch (error) {
         return res.status(400).json({response: error.message});
     }
@@ -184,10 +169,10 @@ exports.getUserInfo = (req, res) => {
             });
         }
         userService.isUserExist(getEmail(auth))
-        .then(resolve)
-        .catch(error => {
-            res.status(400).json({response: error.message});
-        });
+            .then(resolve)
+            .catch(error => {
+                res.status(400).json({response: error.message});
+            });
     } catch (error) {
         res.status(400).json({response: error.message});
     }
