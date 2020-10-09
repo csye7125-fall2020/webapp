@@ -5,7 +5,6 @@ module.exports = (app) => {
     app.get('/', (req, res) => {res.json({"msg":"Hello World"})});
     app.get(base_url + "/self", userCtrl.getUserInfo);
     app.get(base_url + "/:id", userCtrl.getUserInfoById);
-
     app.post(base_url /*,userCtrl.validateUserData*/, userCtrl.createUser);
     app.put(base_url + "/self", userCtrl.updateUser);
 }

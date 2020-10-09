@@ -4,6 +4,7 @@ const db = require("../db/db-config");
 const constants = require("../constants");
 const User = db.user;
 const Op = db.Sequelize.Op;
+const uuid = require('uuid');
 
 exports.isUserExist = function (email) {
     return User.findAll({
@@ -14,6 +15,7 @@ exports.isUserExist = function (email) {
 }
 
 exports.createUser = function (newUser) {
+    newUser.id = uuid.v4();
     newUser.password = bcrypt.hashSync(newUser.password, constants.SALT_ROUNDS);
     const user = new User(newUser);
     return user.save();

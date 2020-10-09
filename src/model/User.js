@@ -1,5 +1,10 @@
 module.exports = (sequelize, Sequelize) => {
     const user = sequelize.define("user", {
+        id: {
+            primaryKey: true,
+            type: Sequelize.UUID,
+            defaultValue: Sequelize.UUIDV4
+        },
         firstName: {
             type: Sequelize.STRING,
             allowNull: false
@@ -16,9 +21,6 @@ module.exports = (sequelize, Sequelize) => {
         password: {
             type: Sequelize.STRING,
             allowNull: false
-        },
-        jwtToken: {
-            type: Sequelize.STRING
         }
     });
 

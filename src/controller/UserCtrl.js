@@ -26,43 +26,38 @@ exports.createUser = (req, res) => {
     try {
         const errors = validationResult(req);
         if(!req.body || req.body === "")
-        res.status(400).json({response: constants.BAD_REQUEST});
+            return res.status(400).json({response: constants.BAD_REQUEST});
         if(validateRequestBody(req.body))
-            res.status(400).json({response: constants.BAD_REQUEST});
+            return  res.status(400).json({response: constants.BAD_REQUEST});
         if (!errors.isEmpty())
-            res.status(400).json({response: constants.BAD_REQUEST})
+            return res.status(400).json({response: constants.BAD_REQUEST})
 
         userService
             .isUserExist(req.body.email)
             .then(data => {
-                if (data.length) {
-                    res.status(422);
-                    res.json({response: constants.USER_ALREADY_EXIST});
-                } else {
-                    const user = Object.assign({}, req.body);
-                    const resolve = (data) => {
-                        res.status(201).json({
-                            message: constants.USER_CREATION_SUCCESS,
-                            user: {
-                                id: data.id,
-                                email: data.email,
-                                firstName: data.firstName,
-                                lastName: data.lastName,
-                                createdAt: data.createdAt,
-                                updatedAt: data.updatedAt
-                            }
-                        });
-                    }
-                    userService
-                        .createUser(user)
-                        .then(resolve)
-                        .catch(error => {
-                            res.status(400).json({response: error.message});
-                        });
+                if (data.length)
+                    return res.status(422).json({response: constants.USER_ALREADY_EXIST});
+                const user = Object.assign({}, req.body);
+                const resolve = (data) => {
+                    res.status(201).json({
+                        message: constants.USER_CREATION_SUCCESS,
+                        user: {
+                            id: data.id,
+                            email: data.email,
+                            firstName: data.firstName,
+                            lastName: data.lastName,
+                            createdAt: data.createdAt,
+                            updatedAt: data.updatedAt
+                        }
+                    });
                 }
-            }).catch(error => {
-            res.status(400).json({response: error.message});
-        });
+                userService
+                    .createUser(user)
+                    .then(resolve)
+                    .catch(error => {
+                        res.status(400).json({response: error.message});
+                    });
+            }).catch(error => res.status(400).json({response: error.message}));
     } catch (error) {
         res.status(400).json({response: error.message});
     }
@@ -79,17 +74,13 @@ exports.updateUser = (req, res) => {
             return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
         if(!req.body || Object.keys(req.body).length === 0)
             return res.status(400).json({response: constants.BAD_REQUEST});
-        if(validateRequestBody(req.body))
+        if(validateRequestBody(req.body) || req.body.hasOwnProperty('email') )
             return res.status(400).json({response: constants.BAD_REQUEST});
-        if(getEmail(auth) !== req.body.email)
-            return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+
+        // if(getEmail(auth) !== req.body.email)
+        //     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
 
         const resolve_update = (updated_record) => {
-            if(updated_record[0] === 0)
-                return res.status(200).json({
-                    message: constants.NO_RECORD_UPDATED,
-                    affected_record: updated_record[0]
-                });
             return res.status(200).json({
                 message: constants.UPDATE_SUCCESS,
                 affected_record: updated_record[0]
@@ -97,38 +88,38 @@ exports.updateUser = (req, res) => {
         }
 
         const resolve = (user) => {
-            if (!user)
-                res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+            if (!user) return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
             bcrypt.compare(getPassword(auth), user[0].password, (err, resp) => {
                 if (err)
                     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
                 if (!resp)
                     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
 
+            req.body.email = getEmail(auth);
                 userService
                 .updateUser(req.body)
                 .then(resolve_update)
-                .catch(error => {
-                    res.status(400).json({response: error.message});
-                });
+                .catch(error => res.status(400).json({response: error.message}));
             });
 
         }
 
         userService.isUserExist(getEmail(auth))
         .then(resolve)
-        .catch(error => {
-            res.status(400).json({response: error.message});
-        });
+        .catch(error => res.status(400).json({response: error.message}));
 
     } catch (error) {
-        res.status(400).json({response: error.message});
+        return res.status(400).json({response: error.message});
     }
 }
 
 exports.getUserInfoById = (req, res) => {
     try {
-        const resolve = (user) => {
+        const auth = req.headers['authorization'];
+        if (!auth || getEmail(auth) === "" || getPassword(auth) === "")
+            return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+
+        const resolve_getId = (user) => {
             res.status(200).json({
                 id: user.id,
                 email: user.email,
@@ -138,14 +129,28 @@ exports.getUserInfoById = (req, res) => {
                 updatedAt: user.updatedAt
             });
         }
-        userService
-            .getUserInfoById(req.params.id)
-            .then(resolve)
-            .catch(error => {
-                res.status(400).json({response: error.message});
+
+        const resolve = (user) => {
+            if (!user)
+                res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+
+            bcrypt.compare(getPassword(auth), user[0].password, (err, resp) => {
+                if (err)
+                    return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+                if (!resp)
+                    return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+
+                userService
+                .getUserInfoById(req.params.id)
+                .then(resolve_getId)
+                .catch(error => res.status(400).json({response: error.message}));
             });
+        }
+        userService.isUserExist(getEmail(auth))
+        .then(resolve)
+        .catch(error => res.status(400).json({response: error.message}));
     } catch (error) {
-        res.status(400).json({response: error.message});
+        return res.status(400).json({response: error.message});
     }
 }
 
@@ -153,11 +158,11 @@ exports.getUserInfo = (req, res) => {
     try {
         const auth = req.headers['authorization'];
         if (!auth || getEmail(auth) === "" || getPassword(auth) === "")
-            res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+            return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
 
         const resolve = (user) => {
             if (!user)
-                res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+                return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
             bcrypt.compare(getPassword(auth), user[0].password, (err, resp) => {
                 if (err)
                     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
@@ -173,7 +178,6 @@ exports.getUserInfo = (req, res) => {
                     updatedAt: user[0].updatedAt
                 });
             });
-
         }
         userService.isUserExist(getEmail(auth))
         .then(resolve)
