@@ -1,0 +1,35 @@
+{
+  "name": "webapp-1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rajashree8294/webapp-1.git"
+  },
+  "author": "Rajashree & Kinner",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rajashree8294/webapp-1/issues"
+  },
+  "homepage": "https://github.com/rajashree8294/webapp-1#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "mysql2": "^2.2.5",
+    "password-validator": "^5.1.0",
+    "sequelize": "^6.3.5",
+    "uuid": "^8.3.1"
+  },
+  "devDependencies": {
+    "express-validator": "^6.6.1",
+    "log4js": "^6.3.0"
+  }
+}
