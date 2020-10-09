@@ -21,15 +21,19 @@ exports.createUser = function (newUser) {
     return user.save();
 }
 
-exports.updateUser = function (user) {
+const getEncryptedPassword = function (password){
     const hashPwd = bcrypt.hashSync(
-        user.password,
+        password,
         constants.SALT_ROUNDS
     );
+    return hashPwd;
+}
+
+exports.updateUser = function (user, oldUser) {
     let updatedUser = {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        password: hashPwd
+        firstName: user.firstName ? user.firstName : oldUser.firstName,
+        lastName: user.lastName ? user.lastName : oldUser.lastName,
+        password: user.password ? getEncryptedPassword(user.password) : oldUser.password
     }
     return User.update(updatedUser, {
         where: {

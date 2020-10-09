@@ -1,6 +1,7 @@
 const constants = require("../constants");
 const userService = require("../service/UserService");
-const {body, validationResult} = require("express-validator");
+const passwordValidator = require('password-validator');
+const {validationResult} = require("express-validator/check");
 const bcrypt = require("bcrypt");
 
 const getEmail = function (auth) {
@@ -13,14 +14,16 @@ const getPassword = function (auth) {
     return new Buffer.from(tmp[1], 'base64').toString().split(':')[1];
 }
 
-exports.validateUserData = () => {
-    return [
-        body("firstName").exists().isAlpha(),
-        body("lastName").exists().isAlpha(),
-        body("email").exists().isEmail(),
-        body("password").exists().isLength({min: 8})
-    ];
-};
+function validatePassword(password) {
+    const schema = new passwordValidator();
+    schema
+        .is().min(8)
+        .is().max(20)
+        .has().uppercase()
+        .has().lowercase();
+
+    return schema.validate(password);
+}
 
 exports.createUser = (req, res) => {
     try {
@@ -29,7 +32,7 @@ exports.createUser = (req, res) => {
             return res.status(400).json({response: constants.BAD_REQUEST});
         if(validateRequestBody(req.body))
             return  res.status(400).json({response: constants.BAD_REQUEST});
-        if (!errors.isEmpty())
+        if (!errors.isEmpty() || !validatePassword(req.body.password))
             return res.status(400).json({response: constants.BAD_REQUEST})
 
         userService
@@ -72,13 +75,14 @@ exports.updateUser = (req, res) => {
         const auth = req.headers['authorization'];
         if (!auth || getEmail(auth) === "" || getPassword(auth) === "")
             return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+
         if(!req.body || Object.keys(req.body).length === 0)
             return res.status(400).json({response: constants.BAD_REQUEST});
-        if(validateRequestBody(req.body) || req.body.hasOwnProperty('email') )
-            return res.status(400).json({response: constants.BAD_REQUEST});
 
-        // if(getEmail(auth) !== req.body.email)
-        //     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+        if(validateRequestBody(req.body)
+            || req.body.hasOwnProperty('email')
+            || (req.body.password && !validatePassword(req.body.password)))
+            return res.status(400).json({response: constants.BAD_REQUEST});
 
         const resolve_update = (updated_record) => {
             return res.status(200).json({
@@ -97,7 +101,7 @@ exports.updateUser = (req, res) => {
 
             req.body.email = getEmail(auth);
                 userService
-                .updateUser(req.body)
+                .updateUser(req.body, user[0])
                 .then(resolve_update)
                 .catch(error => res.status(400).json({response: error.message}));
             });
