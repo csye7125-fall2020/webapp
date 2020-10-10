@@ -1,10 +1,15 @@
 pipeline {
+  environment {
+    dockerRegistry = "kansarak/webapp"
+    dockerRegistryCredential = 'jenkins_docker_login'
+    dockerImage = ''
+  }
   agent any
   tools {nodejs "node" }
   stages {
     stage('Show GIT_URL') {
       steps {
-        echo '${GIT_URL}'
+        sh "echo ${env.GIT_URL}"
       }
     }
     stage('Cloning Git') {
@@ -17,5 +22,26 @@ pipeline {
          sh 'npm install'
        }
     }
+    stage('Building image') {
+       steps{
+         script {
+           dockerImage = docker.build dockerRegistry + ":$BUILD_NUMBER"
+         }
+       }
+     }
+     stage('Upload Image') {
+       steps{
+         script {
+           docker.withRegistry( '', dockerRegistryCredential ) {
+             dockerImage.push()
+           }
+         }
+       }
+     }
+     stage('Remove Unused docker image') {
+       steps{
+         sh "docker rmi $dockerRegistry:$BUILD_NUMBER"
+       }
+     }
   }
 }
