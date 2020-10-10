@@ -9,7 +9,7 @@ pipeline {
     }
     stage('Cloning Git') {
       steps {
-        git 'https://github.com/kinnarrk/webapp-1.git'
+        git 'git@github.com:kinnarrk/webapp-1.git'
       }
     }
     stage('Build') {
