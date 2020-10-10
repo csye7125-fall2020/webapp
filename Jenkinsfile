@@ -2,9 +2,14 @@ pipeline {
   agent any
   tools {nodejs "node" }
   stages {
+    stage('Show GIT_URL') {
+      steps {
+        echo '${GIT_URL}'
+      }
+    }
     stage('Cloning Git') {
       steps {
-        git 'git@github.com:kinnarrk/webapp-1.git'
+        git '${GIT_URL}'
       }
     }
     stage('Build') {
