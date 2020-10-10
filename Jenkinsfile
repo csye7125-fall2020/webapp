@@ -1,7 +1,7 @@
 pipeline {
   environment {
-    dockerRegistry = "kansarak/webapp"
-    dockerRegistryCredential = 'jenkins_docker_login'
+    dockerRegistry = "${env.dockerRegistry}"
+    dockerRegistryCredential = "${env.dockerRegistryCredential}"
     dockerImage = ''
   }
   agent any
