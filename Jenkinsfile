@@ -14,7 +14,7 @@ pipeline {
     }
     stage('Cloning Git') {
       steps {
-        git credentialsId: 'git_fork_private_key', url: 'git@github.com:kinnarrk/webapp-1.git'
+        git credentialsId: 'git_fork_private_key', url: "${env.GIT_URL}"
       }
     }
     stage('Build') {
@@ -22,10 +22,15 @@ pipeline {
          sh 'npm install'
        }
     }
+    stage('Get last git commit') {
+       steps {
+         git_hash = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
+       }
+    }
     stage('Building image') {
        steps{
          script {
-           dockerImage = docker.build dockerRegistry + ":$BUILD_NUMBER"
+           dockerImage = docker.build dockerRegistry + ":${git_hash}"
          }
        }
      }
@@ -33,7 +38,7 @@ pipeline {
        steps{
          script {
            docker.withRegistry( '', dockerRegistryCredential ) {
-             dockerImage.push("${env.BUILD_NUMBER}")
+             dockerImage.push("${git_hash}")
              dockerImage.push("latest")
            }
          }
