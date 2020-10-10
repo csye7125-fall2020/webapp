@@ -4,7 +4,7 @@ pipeline {
     dockerRegistryCredential = 'jenkins_docker_login'
     dockerImage = ''
   }
-  agent { label 'dockerserver' }
+  agent any
   tools {nodejs "node" }
   stages {
     stage('Show GIT_URL') {
@@ -23,12 +23,6 @@ pipeline {
        }
     }
     stage('Building image') {
-        agent {
-                docker {
-                  label 'dockerserver'  // both label and image
-                  image 'maven:3-alpine'
-                }
-            }
        steps{
          script {
            dockerImage = docker.build dockerRegistry + ":$BUILD_NUMBER"
