@@ -1,7 +1,17 @@
-FROM node:14
-WORKDIR /usr/src/app
-COPY package*.json ./
+FROM node
+
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get clean
+
+RUN mkdir /app
+WORKDIR /app
+
+COPY package*.json /app/
+
 RUN npm install
-COPY . .
+
+COPY src /app/src
+
 EXPOSE 3000
-CMD ["node", "src/server.js"]
+
+CMD [ "node", "src/server.js" ]
