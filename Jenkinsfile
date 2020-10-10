@@ -24,7 +24,9 @@ pipeline {
     }
     stage('Get last git commit') {
        steps {
-         git_hash = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
+           script {
+                git_hash = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
+           }
        }
     }
     stage('Building image') {
