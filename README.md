@@ -49,5 +49,5 @@ However, there some public APIs accessible to every user without passing any exp
         - 400: Bad Request on INVALID ID
 
 ## Team Members
-#### 1. Kinner Kansara
+#### 1. Kinnar Kansara
 #### 2. Rajashree Joshi
