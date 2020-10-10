@@ -9,7 +9,7 @@ pipeline {
     }
     stage('Cloning Git') {
       steps {
-        git 'git@github.com:kinnarrk/webapp-1.git'
+        git credentialsId: 'git_fork_private_key', url: 'git@github.com:kinnarrk/webapp-1.git'
       }
     }
     stage('Build') {
