@@ -105,7 +105,6 @@ exports.updateUser = (req, res) => {
                     .then(resolve_update)
                     .catch(error => res.status(400).json({response: error.message}));
             });
-
         }
 
         userService.isUserExist(getEmail(auth))
