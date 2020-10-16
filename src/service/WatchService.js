@@ -30,10 +30,15 @@ exports.updateWatch = (watchId, oldWatch, newWatch) => {
     });
 }
 
-exports.updateAlert = (alert) => {
-    return Alert.update(alert, {
+exports.updateAlert = (oldAlert, newAlert) => {
+    const updatedAlert = {
+        fieldType: newAlert[0].fieldType ? newAlert[0].fieldType : oldAlert.fieldType,
+        operator: newAlert[0].fieldType ? newAlert[0].operator : oldAlert.operator,
+        value: newAlert[0].value ? newAlert[0].value : oldAlert.value
+    }
+    return Alert.update(updatedAlert, {
         where: {
-            alertId: alert.alertId
+            alertId: oldAlert.alertId
         }
     });
 }
@@ -53,4 +58,12 @@ exports.deleteWatch = (watchId) => {
             watchId: watchId
         }
     });
+}
+
+exports.getAlert = (alertId) => {
+    return Alert.findOne({
+        where: {
+            alertId: alertId
+        }
+    })
 }

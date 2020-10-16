@@ -10,5 +10,6 @@ module.exports = {
     WATCH_NOT_FOUND: "Watch not found",
     WATCH_DELETE_SUCCESS: "Watch deleted successfully",
     WATCH_UPDATE_SUCCESS: "Watch updated successfully",
-    UPDATE_BODY_EMPTY: "Found no fields to update"
+    UPDATE_BODY_EMPTY: "Found no fields to update",
+    ALERT_NOT_FOUND: "Alert not found"
 }

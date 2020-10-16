@@ -133,8 +133,22 @@ exports.updateWatch = (req, res) => {
             if (!resp)
                 return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
 
+            const resolve_getAlert = (existing_alert) => {
+                if(!existing_alert)
+                    return res.status(404).json({response: constants.ALERT_NOT_FOUND});
+
+                watchService.updateAlert(existing_alert, req.body.alerts)
+                    .then(resp => res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS}))
+                    .catch(e => res.status(400).json({response: e.message}));
+            }
+
             const resolve_updateWatch = (updated_watch) => {
-                res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS});
+                const alerts = req.body.alerts;
+                if(alerts && alerts.length === 1){
+                    watchService.getAlert(alerts[0].alertId)
+                    .then(resolve_getAlert).catch(e => res.status(400).json({response: e.message}));
+                } else
+                    return res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS});
             }
 
             const resolve_getWatch = (watch_data) => {
