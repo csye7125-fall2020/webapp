@@ -9,7 +9,7 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.UUID,
             allowNull: false
         },
-        zipCode: {
+        zipcode: {
             type: Sequelize.STRING,
             allowNull: false
         }

@@ -11,7 +11,7 @@ module.exports = (app) => {
         check("password").exists()];
 
     const watchValidations = [
-        check("zipCode").exists(),
+        check("zipcode").exists(),
         check("alerts").exists()];
 
     app.get('/', (req, res) => {res.json({"msg":"Hello World"})});

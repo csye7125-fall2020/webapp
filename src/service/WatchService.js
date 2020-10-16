@@ -8,7 +8,7 @@ exports.addWatch = (watch) => {
     return Watch.create({
         watchId: uuid.v4(),
         userId: watch.userId,
-        zipCode: watch.zipCode
+        zipcode: watch.zipcode
     });
 }
 
@@ -21,7 +21,7 @@ exports.addAlert = (alerts, watchId) => {
 
 exports.updateWatch = (watchId, oldWatch, newWatch) => {
     const updatedWatch = {
-        zipCode: newWatch.zipCode ? newWatch.zipCode : oldWatch.zipCode
+        zipcode: newWatch.zipcode ? newWatch.zipcode : oldWatch.zipcode
     }
     return Watch.update(updatedWatch, {
         where: {

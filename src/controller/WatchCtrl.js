@@ -1,8 +1,11 @@
 const {validationResult} = require("express-validator/check");
 const watchService = require("../service/WatchService");
 const userService = require("../service/UserService");
+const producerService = require("../service/ProducerService");
+const config = require("../kafka/kafka-config");
 const constants = require("../constants");
 const bcrypt = require("bcrypt");
+let producePayload = [];
 
 const getEmail = function (auth) {
     const tmp = auth.split(' ');
@@ -42,10 +45,15 @@ exports.addWatch = (req, res) => {
                 .then(watch_data => {
                     watchService.addAlert(req.body.alerts, watch_data.watchId)
                         .then(alert_data => {
+                            watch_data.setDataValue("alerts", alert_data);
+
+                            producePayload = [];
+                            producePayload.push({topic: config.kafka_topic, messages: JSON.stringify(watch_data.dataValues)});
+                            producerService.publish(producePayload);
+
                             res.status(200).json({
                                 message: constants.WATCH_ADD_SUCCESS,
-                                watch: watch_data,
-                                alerts: alert_data
+                                watch: watch_data
                             });
                         }).catch(e => res.status(400).json({response: e.message}));
                 }).catch(e => res.status(400).json({response: e.message}));
@@ -104,6 +112,11 @@ exports.deleteWatch = (req, res) => {
                 .then(watch_data => {
                     if(!watch_data)
                         return res.status(404).json({response: constants.WATCH_NOT_FOUND});
+
+                    producePayload = [];
+                    producePayload.push({topic: config.kafka_topic, messages: req.params.id + " deleted successfully"});
+                    producerService.publish(producePayload);
+
                     res.status(201).json({response: constants.WATCH_DELETE_SUCCESS});
                 }).catch(e => res.status(400).json({response: e.message}));
         });
@@ -114,6 +127,15 @@ exports.deleteWatch = (req, res) => {
         .catch(error => res.status(400).json({response: error.message}));
 }
 
+function publishToKafka(id) {
+    watchService.getWatch(id)
+        .then( res => {
+            producePayload = [];
+            producePayload.push({topic: config.kafka_topic, messages: "updated: {"+ JSON.stringify(res.dataValues) + "}"});
+            producerService.publish(producePayload);
+        }).catch();
+}
+
 exports.updateWatch = (req, res) => {
     const auth = req.headers['authorization'];
 
@@ -122,7 +144,6 @@ exports.updateWatch = (req, res) => {
 
     if (!req.body || Object.keys(req.body).length === 0)
         return res.status(400).json({response: constants.UPDATE_BODY_EMPTY});
-
 
     const resolve = (user) => {
         if (!user) return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
@@ -138,8 +159,10 @@ exports.updateWatch = (req, res) => {
                     return res.status(404).json({response: constants.ALERT_NOT_FOUND});
 
                 watchService.updateAlert(existing_alert, req.body.alerts)
-                    .then(resp => res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS}))
-                    .catch(e => res.status(400).json({response: e.message}));
+                    .then(resp => {
+                        publishToKafka(req.params.id);
+                        res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS});
+                    }).catch(e => res.status(400).json({response: e.message}));
             }
 
             const resolve_updateWatch = (updated_watch) => {
@@ -147,8 +170,10 @@ exports.updateWatch = (req, res) => {
                 if(alerts && alerts.length === 1){
                     watchService.getAlert(alerts[0].alertId)
                     .then(resolve_getAlert).catch(e => res.status(400).json({response: e.message}));
-                } else
+                } else {
+                    publishToKafka(req.params.id);
                     return res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS});
+                }
             }
 
             const resolve_getWatch = (watch_data) => {
