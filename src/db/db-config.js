@@ -19,5 +19,13 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
 db.user = require("../model/User")(sequelize, Sequelize);
+db.watch = require("../model/Watch")(sequelize, Sequelize);
+db.alert = require("../model/Alert")(sequelize, Sequelize);
+
+db.watch.hasMany(db.alert, {
+    onUpdate: "cascade",
+    onDelete: "cascade",
+    foreignKey: {name: "watchId", allowNull: false}
+});
 
 module.exports = db;

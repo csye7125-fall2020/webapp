@@ -6,10 +6,10 @@ const User = db.user;
 const Op = db.Sequelize.Op;
 const uuid = require('uuid');
 
-exports.isUserExist = function (email) {
+exports.isUserExist = function (username) {
     return User.findAll({
         where: {
-            email: email
+            username: username
         }
     });
 }
@@ -37,7 +37,7 @@ exports.updateUser = function (user, oldUser) {
     }
     return User.update(updatedUser, {
         where: {
-            email: user.email
+            username: user.username
         }
     });
 }
@@ -52,6 +52,6 @@ exports.getUserInfoById = function (id) {
     });
 }
 
-exports.getUserInfo = function (email, password) {
+exports.getUserInfo = function (username, password) {
 
 }
