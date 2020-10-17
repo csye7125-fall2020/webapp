@@ -5,6 +5,7 @@ const producerService = require("../service/ProducerService");
 const config = require("../kafka/kafka-config");
 const constants = require("../constants");
 const bcrypt = require("bcrypt");
+const _ = require("lodash");
 let producePayload = [];
 
 const getEmail = function (auth) {
@@ -131,7 +132,7 @@ function publishToKafka(id) {
     watchService.getWatch(id)
         .then( res => {
             producePayload = [];
-            producePayload.push({topic: config.kafka_topic, messages: "updated: {"+ JSON.stringify(res.dataValues) + "}"});
+            producePayload.push({topic: config.kafka_topic, messages: JSON.stringify(res.dataValues)});
             producerService.publish(producePayload);
         }).catch();
 }
@@ -165,23 +166,45 @@ exports.updateWatch = (req, res) => {
                     }).catch(e => res.status(400).json({response: e.message}));
             }
 
-            const resolve_updateWatch = (updated_watch) => {
-                const alerts = req.body.alerts;
-                if(alerts && alerts.length === 1){
-                    watchService.getAlert(alerts[0].alertId)
-                    .then(resolve_getAlert).catch(e => res.status(400).json({response: e.message}));
-                } else {
-                    publishToKafka(req.params.id);
-                    return res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS});
-                }
-            }
-
             const resolve_getWatch = (watch_data) => {
                 if(!watch_data)
                     return res.status(404).json({response: constants.WATCH_NOT_FOUND});
 
                 watchService.updateWatch(req.params.id, watch_data, req.body)
-                    .then(resolve_updateWatch).catch(e => res.status(400).json({response: e.message}));
+                    .then(update_success => {
+                        const alerts = req.body.alerts;
+                        if(alerts && alerts.length > 0){
+                                const mergedAlerts = mergeAllAlerts(watch_data.alerts, alerts);
+                                const rejAlerts = rejectedAlerts(watch_data.alerts, mergedAlerts);
+                                if(rejAlerts.length === 0) {
+                                    console.log("No rejected alerts");
+                                    watchService.addAlert(mergedAlerts, watch_data.watchId)
+                                        .then(succ => {
+                                            console.log("all new alerts inserted successfully");
+                                            publishToKafka(req.params.id);
+                                            res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS});
+                                        }).catch(e => e => res.status(400).json({response: e.message}));
+                                }
+                                else{
+                                    console.log("deleting some of the alerts");
+                                    watchService.deleteAlert(rejAlerts)
+                                        .then( succ =>  {
+                                            console.log("some deleted successfully");
+                                            watchService.addAlert(mergedAlerts, watch_data.watchId)
+                                                .then(succ => {
+                                                    console.log("some new alerts inserted successfully");
+                                                    publishToKafka(req.params.id);
+                                                    res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS});
+                                                }).catch(e => e => res.status(400).json({response: e.message}));
+                                        })
+                                        .catch(e => res.status(400).json({response: e.message}));
+                                 }
+                        } else {
+                            publishToKafka(req.params.id);
+                            return res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS});
+                        }
+                    })
+                    .catch(e => res.status(400).json({response: e.message}));
             }
 
             watchService.getWatch(req.params.id)
@@ -192,4 +215,43 @@ exports.updateWatch = (req, res) => {
     userService.isUserExist(getEmail(auth))
         .then(resolve)
         .catch(error => res.status(400).json({response: error.message}));
+}
+
+const mergeAllAlerts = (existing_alerts, new_alerts) => {
+    const alerts = [];
+
+    for(let i = 0; i< new_alerts.length; i++){
+        const isFound = _.find(existing_alerts, new_alerts[i]);
+        console.log("isFound: ", isFound);
+        if(!isFound)
+            alerts.push(new_alerts[i]);
+        else
+            alerts.push(isFound);
+    }
+
+    console.log("updated alert: "+ alerts);
+    return alerts;
+}
+
+const rejectedAlerts = (existing_alerts, merged_alerts) => {
+    let rejected = [];
+    let fromDb = false;
+    _.forEach(merged_alerts, alert => {
+        if(alert.alertId){
+            if(rejected.length === 0)
+                rejected = _.reject(existing_alerts, {alertId: alert.alertId});
+            else
+                rejected = _.reject(rejected, {alertId: alert.alertId});
+            fromDb = true;
+        } else{
+            if(rejected.length === 0)
+                rejected = _.reject(existing_alerts, alert);
+            else
+                rejected = _.reject(rejected, alert);
+        }
+    });
+    if(rejected.length === 0 && fromDb)
+        console.log("All repeated alerts from DB " + rejected);
+
+    return rejected;
 }

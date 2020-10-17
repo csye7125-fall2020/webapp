@@ -12,6 +12,10 @@ module.exports = (sequelize, Sequelize) => {
         zipcode: {
             type: Sequelize.STRING,
             allowNull: false
+        },
+        isDeleted: {
+            type: Sequelize.BOOLEAN,
+            defaultValue: false
         }
     });
     return watch;

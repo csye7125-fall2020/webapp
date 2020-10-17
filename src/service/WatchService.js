@@ -3,6 +3,7 @@ const db = require("../db/db-config");
 const Watch = db.watch;
 const Alert = db.alert;
 const uuid = require('uuid');
+const _ = require('lodash');
 
 exports.addWatch = (watch) => {
     return Watch.create({
@@ -13,10 +14,21 @@ exports.addWatch = (watch) => {
 }
 
 exports.addAlert = (alerts, watchId) => {
+    const postbody = [];
+
     for (let i in alerts) {
-        alerts[i]["watchId"] = watchId;
+        if(alerts[i].alertId)
+            continue;
+        let obj = {};
+        obj["alertId"] = uuid.v4();
+        obj["watchId"] = watchId;
+        obj["fieldType"] = alerts[i].fieldType;
+        obj["operator"] = alerts[i].operator;
+        obj["value"] = alerts[i].value;
+        postbody.push(obj);
     }
-    return Alert.bulkCreate(alerts);
+
+    return Alert.bulkCreate(postbody);
 }
 
 exports.updateWatch = (watchId, oldWatch, newWatch) => {
@@ -53,9 +65,19 @@ exports.getWatch = (watchId) => {
 }
 
 exports.deleteWatch = (watchId) => {
-    return Watch.destroy({
+    return Watch.update({isDeleted: true},{
         where: {
             watchId: watchId
+        }
+    });
+}
+
+exports.deleteAlert = (rejectedAlerts, mergedAlerts) => {
+    return Alert.destroy({
+        where: {
+            alertId: rejectedAlerts.map((al) => {
+                return al.alertId;
+            })
         }
     });
 }
