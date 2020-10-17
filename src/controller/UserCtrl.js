@@ -36,7 +36,7 @@ exports.createUser = (req, res) => {
             return res.status(400).json({response: constants.BAD_REQUEST})
 
         userService
-            .isUserExist(req.body.email)
+            .isUserExist(req.body.username)
             .then(data => {
                 if (data.length)
                     return res.status(422).json({response: constants.USER_ALREADY_EXIST});
@@ -46,7 +46,7 @@ exports.createUser = (req, res) => {
                         message: constants.USER_CREATION_SUCCESS,
                         user: {
                             id: data.id,
-                            email: data.email,
+                            username: data.username,
                             firstName: data.firstName,
                             lastName: data.lastName,
                             createdAt: data.createdAt,
@@ -80,7 +80,7 @@ exports.updateUser = (req, res) => {
             return res.status(400).json({response: constants.BAD_REQUEST});
 
         if (validateRequestBody(req.body)
-            || req.body.hasOwnProperty('email')
+            || req.body.hasOwnProperty('username')
             || (req.body.password && !validatePassword(req.body.password)))
             return res.status(400).json({response: constants.BAD_REQUEST});
 
@@ -99,7 +99,7 @@ exports.updateUser = (req, res) => {
                 if (!resp)
                     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
 
-                req.body.email = getEmail(auth);
+                req.body.username = getEmail(auth);
                 userService
                     .updateUser(req.body, user[0])
                     .then(resolve_update)
@@ -122,7 +122,7 @@ exports.getUserInfoById = (req, res) => {
             if(user) {
                return res.status(200).json({
                     id: user.id,
-                    email: user.email,
+                   username: user.username,
                     firstName: user.firstName,
                     lastName: user.lastName,
                     createdAt: user.createdAt,
@@ -161,7 +161,7 @@ exports.getUserInfo = (req, res) => {
                     id: user[0].id,
                     firstName: user[0].firstName,
                     lastName: user[0].lastName,
-                    email: user[0].email,
+                    username: user[0].username,
                     createdAt: user[0].createdAt,
                     updatedAt: user[0].updatedAt
                 });

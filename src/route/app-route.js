@@ -5,7 +5,7 @@ module.exports = (app) => {
     const {check}  = require('express-validator/check');
 
     const userValidations = [
-        check("email").exists().isEmail(),
+        check("username").exists().isEmail(),
         check("firstName").exists().isAlpha(),
         check("lastName").exists().isAlpha(),
         check("password").exists()];
