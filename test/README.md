@@ -1,5 +1,6 @@
 ## Testing app with dockerized environment
 
+
 Create a public repository on docker hub. Name it `docker-jenkins`
 
 ### Build image
