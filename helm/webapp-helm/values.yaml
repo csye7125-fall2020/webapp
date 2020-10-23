@@ -5,6 +5,17 @@ imageCredentials:
   email: <docker_email>
   registry: https://index.docker.io/v1/
 
+spec:
+  imageName: rajashreej/csye7125:latest
+  appName: webapp
+  replicaCount: 3
+  progressDeadlineSeconds: 60
+  minReadySeconds: 30
+  strategy:
+    maxSurge: 1
+    maxUnavailable: 0
+    type: RollingUpdate
+
 nodeSelector: {}
 
 tolerations: []
