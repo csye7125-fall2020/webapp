@@ -1,12 +1,12 @@
 imageCredentials:
-  dockerconfig: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJyYWphc2hyZWVqIiwicGFzc3dvcmQiOiJkb2NrZXJodWJwd2Q4OCIsImVtYWlsIjoicmFqYXNocmVlam9zaGk4QGdtYWlsLmNvbSIsImF1dGgiOiJjbUZxWVhOb2NtVmxhanBrYjJOclpYSm9kV0p3ZDJRNE9BPT0ifX19
+  dockerconfig: <base64_dockerconfig>
   username: <docker_username>
   password: <docker_password>
   email: <docker_email>
   registry: https://index.docker.io/v1/
 
 spec:
-  imageName: rajashreej/csye7125:latest
+  imageName: <image_name>
   appName: webapp
   replicaCount: 3
   progressDeadlineSeconds: 60

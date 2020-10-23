@@ -29,6 +29,6 @@ spec:
             - containerPort: 8080
               protocol: TCP
       imagePullSecrets:
-        - name: dockerRegistryKey
+        - name: dockerregistrykey
 
 
