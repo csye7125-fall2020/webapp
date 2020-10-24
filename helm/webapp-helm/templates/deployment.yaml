@@ -24,9 +24,35 @@ spec:
       containers:
         - name: {{ .Values.spec.appName }}
           image: {{ .Values.spec.imageName }}
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: server_port
+                  name: rds-config
+            - name: DBHost
+              valueFrom:
+                configMapKeyRef:
+                  name: rds-config
+                  key: db_host
+            - name: DBName
+              valueFrom:
+                configMapKeyRef:
+                  name: rds-config
+                  key: db_name
+            - name: DBUser
+              valueFrom:
+                secretKeyRef:
+                  name: rds-secret
+                  key: db_user
+            - name: DBPassword
+              valueFrom:
+                secretKeyRef:
+                  name: rds-secret
+                  key: db_password
           imagePullPolicy: Always
           ports:
-            - containerPort: 8080
+            - containerPort: 3000
               protocol: TCP
       imagePullSecrets:
         - name: dockerregistrykey

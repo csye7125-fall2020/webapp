@@ -1,3 +1,5 @@
+server_port: 3000
+
 imageCredentials:
   dockerconfig: <base64_dockerconfig>
   username: <docker_username>
@@ -15,6 +17,12 @@ spec:
     maxSurge: 1
     maxUnavailable: 0
     type: RollingUpdate
+
+rdsdata:
+  db_host: <rds_endpoint>
+  db_name: <rds_instance_name>
+  db_user: <rds_user>
+  db_password: <rds_password>
 
 nodeSelector: {}
 
