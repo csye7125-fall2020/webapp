@@ -138,8 +138,7 @@ However, there some public APIs accessible to every user without passing any exp
         - 200: Ok on SUCCESS
         - 400: Bad Request on INVALID ID
 
+
 ## Team Members
 #### 1. Kinnar Kansara
 #### 2. Rajashree Joshi
-
-Demo

@@ -114,6 +114,9 @@ exports.deleteWatch = (req, res) => {
                     if(!watch_data)
                         return res.status(404).json({response: constants.WATCH_NOT_FOUND});
 
+                    // producePayload = [];
+                    // producePayload.push({topic: config.kafka_topic, messages: req.params.id + " deleted successfully"});
+                    // producerService.publish(producePayload);
                     publishToKafka(req.params.id);
 
                     res.status(201).json({response: constants.WATCH_DELETE_SUCCESS});
