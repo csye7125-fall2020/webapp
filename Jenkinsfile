@@ -7,6 +7,17 @@ pipeline {
   agent any
   tools {nodejs "node" }
   stages {
+    stage('Install kubectl') {
+      //Installing kubectl in Jenkins agent
+      sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl'
+      sh 'chmod +x ./kubectl && mv kubectl /usr/local/bin'
+    }
+    stage('Install helm') {
+      //Installing helm in Jenkins agent
+      sh 'curl -LO https://get.helm.sh/helm-v3.3.4-linux-amd64.tar.gz'
+      sh 'tar -zxvf helm-v3.3.4-linux-amd64.tar.gz'
+      sh 'chmod +x ./linux-amd64/helm && mv linux-amd64/helm /usr/local/bin/helm'
+    }
     stage('Show GIT_URL') {
       steps {
         sh "echo ${env.GIT_URL}"
@@ -51,6 +62,14 @@ pipeline {
          sh "docker rmi $dockerRegistry:${git_hash}"
        }
      }
+    stage('Write file my-values.yaml') {
+      writeFile file: 'my-values.yaml', text: ${env.my_values_yaml}
+    }
+    stage('Helm upgrade') {
+      steps{
+        sh "helm install webapp  ./webapp-helm/ -f my-values.yaml --set spec.imageName=$dockerRegistry:${git_hash}"
+      }
+    }
   }
 }
 
