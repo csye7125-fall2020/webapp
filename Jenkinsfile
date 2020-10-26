@@ -7,6 +7,12 @@ pipeline {
   agent any
   tools {nodejs "node" }
   stages {
+    stage('Show GIT_URL') {
+      steps {
+        sh "echo ${env.GIT_URL}"
+        sh whoami
+      }
+    }
     stage('Install kubectl') {
       steps {
         //Installing kubectl in Jenkins agent
