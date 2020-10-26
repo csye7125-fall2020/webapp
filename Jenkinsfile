@@ -7,6 +7,12 @@ pipeline {
   agent any
   tools {nodejs "node" }
   stages {
+    stage('Show GIT_URL') {
+      steps {
+        sh "echo ${env.GIT_URL}"
+        sh whoami
+      }
+    }
     stage('Install kubectl') {
       steps {
         //Installing kubectl in Jenkins agent
@@ -20,11 +26,6 @@ pipeline {
         sh 'curl -LO https://get.helm.sh/helm-v3.3.4-linux-amd64.tar.gz'
         sh 'tar -zxvf helm-v3.3.4-linux-amd64.tar.gz'
         sh 'chmod +x ./linux-amd64/helm && sudo mv linux-amd64/helm /usr/local/bin/helm'
-      }
-    }
-    stage('Show GIT_URL') {
-      steps {
-        sh "echo ${env.GIT_URL}"
       }
     }
     stage('Cloning Git') {
