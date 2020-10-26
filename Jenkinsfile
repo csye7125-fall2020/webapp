@@ -10,7 +10,7 @@ pipeline {
     stage('Show GIT_URL') {
       steps {
         sh "echo ${env.GIT_URL}"
-        sh whoami
+        sh "whoami"
       }
     }
     stage('Install kubectl') {
