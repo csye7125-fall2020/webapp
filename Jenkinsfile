@@ -11,7 +11,7 @@ pipeline {
       steps {
         //Installing kubectl in Jenkins agent
         sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl'
-        sh 'chmod +x ./kubectl && mv kubectl /usr/local/bin'
+        sh 'chmod +x ./kubectl && sudo mv kubectl /usr/local/bin'
       }
     }
     stage('Install helm') {
@@ -19,7 +19,7 @@ pipeline {
         //Installing helm in Jenkins agent
         sh 'curl -LO https://get.helm.sh/helm-v3.3.4-linux-amd64.tar.gz'
         sh 'tar -zxvf helm-v3.3.4-linux-amd64.tar.gz'
-        sh 'chmod +x ./linux-amd64/helm && mv linux-amd64/helm /usr/local/bin/helm'
+        sh 'chmod +x ./linux-amd64/helm && sudo mv linux-amd64/helm /usr/local/bin/helm'
       }
     }
     stage('Show GIT_URL') {
