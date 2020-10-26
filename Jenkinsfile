@@ -63,11 +63,11 @@ pipeline {
        }
      }
     stage('Write file my-values.yaml') {
-      writeFile file: 'my-values.yaml', text: ${env.my_values_yaml}
+      writeFile file: 'helm/my-values.yaml', text: ${env.my_values_yaml}
     }
     stage('Helm upgrade') {
       steps{
-        sh "helm install webapp  ./webapp-helm/ -f my-values.yaml --set spec.imageName=$dockerRegistry:${git_hash}"
+        sh "helm install webapp  ./helm/webapp-helm/ -f helm/my-values.yaml --set spec.imageName=$dockerRegistry:${git_hash}"
       }
     }
   }
