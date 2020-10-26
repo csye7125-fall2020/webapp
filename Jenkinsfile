@@ -67,7 +67,9 @@ pipeline {
        }
      }
     stage('Write file my-values.yaml') {
-      writeFile file: 'helm/my-values.yaml', text: ${env.my_values_yaml}
+      steps{
+        writeFile file: 'helm/my-values.yaml', text: ${env.my_values_yaml}
+      }
     }
     stage('Helm upgrade') {
       steps{
