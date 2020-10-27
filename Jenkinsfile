@@ -27,13 +27,13 @@ pipeline {
     }
     stage('Write file my-values.yaml') {
       steps{
-        writeFile file: 'helm/my-values.yaml', text: "${env.my_values_yaml}"
+        writeFile file: 'helm/my-values.yaml', text: "${env.my_values_yaml.replace('kansarak/webapp:latest', dockerRegistry+git_hash+'')}"
       }
     }
-    stage('Write file my-values.yaml with updated git hash') {
+    /*stage('Write file my-values.yaml with updated git hash') {
       steps{
-        def filename = 'helm/my-values.yaml'
-        def data = readYaml file: filename
+        filename = 'helm/my-values.yaml'
+        data = readYaml file: filename
 
         // Change something in the file
         data.spec.imageName = "$dockerRegistry:${git_hash}"
@@ -41,7 +41,7 @@ pipeline {
         sh "rm $filename"
         writeYaml file: filename, data: data
       }
-    }
+    }*/
     stage('Show modified yaml') {
       steps {
         sh "echo Modified YAML"
