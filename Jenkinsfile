@@ -27,7 +27,7 @@ pipeline {
     }
     stage('Write file my-values.yaml') {
       steps{
-        writeFile file: 'helm/my-values.yaml', text: "${env.my_values_yaml.replace('kansarak/webapp:latest', dockerRegistry+git_hash+'')}"
+        writeFile file: 'helm/my-values.yaml', text: "${env.my_values_yaml.replace('kansarak/webapp:latest', dockerRegistry+':'+git_hash)}"
       }
     }
     /*stage('Write file my-values.yaml with updated git hash') {
