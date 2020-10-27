@@ -31,7 +31,7 @@ pipeline {
     stage('Export kubecfg via kops') {
       steps {
         //Exporting kubecfg for kubectl so helm can upgrade
-        sh './kops export kubecfg ${KOPS_CLUSTER_NAME}'
+        sh './kops export kubecfg'
       }
     }
     stage('Show kubectl nodes') {
