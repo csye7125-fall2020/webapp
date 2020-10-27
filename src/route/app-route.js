@@ -14,7 +14,7 @@ module.exports = (app) => {
         check("zipcode").exists(),
         check("alerts").exists()];
 
-    app.get('/', (req, res) => {res.json({"msg":"Hello World"})});
+    app.get('/', (req, res) => {res.json({"msg":"Hello World Helm"})});
     app.get(base_url + "user/self", userCtrl.getUserInfo);
     app.get(base_url + "user/:id", userCtrl.getUserInfoById);
     app.post(base_url + "user", userValidations, userCtrl.createUser);

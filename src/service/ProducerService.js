@@ -4,7 +4,7 @@ const config = require('../kafka/kafka-config');
 exports.publish = (payloads) => {
     try {
         const Producer = kafka.Producer;
-        const client = new kafka.KafkaClient();
+        const client = new kafka.KafkaClient({ kafkaHost: config.kafka_host });
         const producer = new Producer(client);
 
         producer.on('ready', async function () {
