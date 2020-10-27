@@ -47,7 +47,7 @@ pipeline {
         sh 'curl -LO https://get.helm.sh/helm-v3.3.4-linux-amd64.tar.gz'
         sh 'tar -zxvf helm-v3.3.4-linux-amd64.tar.gz'
         //sh 'chmod +x ./linux-amd64/helm && sudo mv linux-amd64/helm /usr/local/bin/helm'
-        sh 'mv linux-amd64/helm ./helm && chmod +x helm'
+        sh 'chmod +x linux-amd64/helm'
       }
     }
     stage('Show GIT_URL') {
