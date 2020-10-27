@@ -96,7 +96,7 @@ pipeline {
     }
     stage('Helm upgrade') {
       steps{
-        sh "./linux-amd64/helm upgrade webapp  ./helm/webapp-helm/ -f helm/my-values.yaml --set spec.imageName=$dockerRegistry:${git_hash}"
+        sh "./linux-amd64/helm upgrade webapp  ./helm/webapp-helm/ -f helm/my-values.yaml --set spec.imageName=\"$dockerRegistry:${git_hash}\""
       }
     }
   }
