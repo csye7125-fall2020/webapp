@@ -2,6 +2,7 @@ module.exports = (app) => {
     const base_url = "/v1/";
     const userCtrl = require("../controller/UserCtrl");
     const watchCtrl = require("../controller/WatchCtrl");
+    const healthCtrl = require("../controller/HealthCtrl");
     const {check}  = require('express-validator/check');
 
     const userValidations = [
@@ -14,7 +15,9 @@ module.exports = (app) => {
         check("zipcode").exists(),
         check("alerts").exists()];
 
-    app.get('/', (req, res) => {res.json({"msg":"Hello World Helm"})});
+    app.get('/', (req, res) => {res.json({"status": "UP", "msg":"Hello World!"})});
+    app.get('/health', healthCtrl.health);
+
     app.get(base_url + "user/self", userCtrl.getUserInfo);
     app.get(base_url + "user/:id", userCtrl.getUserInfoById);
     app.post(base_url + "user", userValidations, userCtrl.createUser);
