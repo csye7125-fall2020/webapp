@@ -138,6 +138,41 @@ However, there some public APIs accessible to every user without passing any exp
         - 200: Ok on SUCCESS
         - 400: Bad Request on INVALID ID
 
+### Installing helm chart
+
+Make sure the context for kubernetes is defined for `kubectl` and `helm` is installed
+
+To create new deployment, use below command to deploy `webapp` application
+```
+helm install poller ./helm/webapp-helm/ -f ./helm/my-values.yaml
+```
+Things to consider:
+- First you need to create `kubernetes` secret by executing below command
+    ```    
+    kubectl create secret docker-registry regcred --docker-server=https://index.docker.io/v1/ --docker-username=<docker_hub_uname> --docker-password=<docker_hub_password> --docker-email=<email_used_for_docker_hub>
+    ```
+    Get the secret by executing
+    ```
+    kubectl get secret regcred --output=yaml
+    ```
+    Copy base64 value in `imageCredentials.dockerconfig` of `my-values.yaml`.
+
+- Replace the RDS instance endpoint in `rdsdata.db_host`.
+
+
+Example `my-values.yaml` will look like:
+    
+    imageCredentials:
+      dockerconfig: <your secret>
+
+    spec:
+      imageName: <docker username/webapp:latest
+
+    rdsdata:
+      db_host: webapp-rds-instance.abcd0123456.us-east-1.rds.amazonaws.com
+      db_name: csye7125_poller
+      db_user: <my_db_username>
+      db_password: <my_db_password>
 
 ## Team Members
 #### 1. Kinnar Kansara

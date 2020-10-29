@@ -54,6 +54,20 @@ spec:
           ports:
             - containerPort: 3000
               protocol: TCP
+          livenessProbe:
+            httpGet:
+              port: 3000
+              path: /health
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              port: 3000
+              path: /health
+            initialDelaySeconds: 20
+            periodSeconds: 20
+
       imagePullSecrets:
         - name: dockerregistrykey
 
