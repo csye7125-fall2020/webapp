@@ -27,7 +27,7 @@ producerService.publish(payloads);
 let initApp = require('./route/app-route');
 initApp(app);
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000;
 
 const server = http.createServer(app);
 

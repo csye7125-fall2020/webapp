@@ -133,7 +133,7 @@ function publishToKafka(id) {
     watchService.getWatch(id)
         .then( res => {
             producePayload = [];
-            producePayload.push({topic: config.kafka_topic, messages: JSON.stringify(res.dataValues)});
+            producePayload.push({ topic: config.kafka_topic, messages: JSON.stringify(res.dataValues)});
             producerService.publish(producePayload);
         }).catch();
 }
