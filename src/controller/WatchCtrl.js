@@ -6,7 +6,28 @@ const config = require("../kafka/kafka-config");
 const constants = require("../constants");
 const bcrypt = require("bcrypt");
 const _ = require("lodash");
+const client = require('prom-client');
 let producePayload = [];
+
+const addWatchCounter = new client.Counter({
+    name: 'count_add_watch',
+    help: 'The total number of add watch api requests'
+});
+
+const updateWatchCounter = new client.Counter({
+    name: 'count_update_watch',
+    help: 'The total number of update watch api requests'
+});
+
+const deleteWatchCounter = new client.Counter({
+    name: 'count_delete_watch',
+    help: 'The total number of delete watch api requests'
+});
+
+const getWatchCounter = new client.Counter({
+    name: 'count_get_watch',
+    help: 'The total number of get watch api requests'
+});
 
 const getEmail = function (auth) {
     const tmp = auth.split(' ');
@@ -19,6 +40,7 @@ const getPassword = function (auth) {
 }
 
 exports.addWatch = (req, res) => {
+    addWatchCounter.inc();
     const auth = req.headers['authorization'];
     const errors = validationResult(req);
 
@@ -66,6 +88,7 @@ exports.addWatch = (req, res) => {
 }
 
 exports.getWatch = (req, res) => {
+    getWatchCounter.inc();
     const auth = req.headers['authorization'];
 
     if (!auth || getEmail(auth) === "" || getPassword(auth) === "")
@@ -95,6 +118,7 @@ exports.getWatch = (req, res) => {
 }
 
 exports.deleteWatch = (req, res) => {
+    deleteWatchCounter.inc();
     const auth = req.headers['authorization'];
 
     if (!auth || getEmail(auth) === "" || getPassword(auth) === "")
@@ -113,10 +137,6 @@ exports.deleteWatch = (req, res) => {
                 .then(watch_data => {
                     if(!watch_data)
                         return res.status(404).json({response: constants.WATCH_NOT_FOUND});
-
-                    // producePayload = [];
-                    // producePayload.push({topic: config.kafka_topic, messages: req.params.id + " deleted successfully"});
-                    // producerService.publish(producePayload);
                     publishToKafka(req.params.id);
 
                     res.status(201).json({response: constants.WATCH_DELETE_SUCCESS});
@@ -139,6 +159,7 @@ function publishToKafka(id) {
 }
 
 exports.updateWatch = (req, res) => {
+    updateWatchCounter.inc();
     const auth = req.headers['authorization'];
 
     if (!auth || getEmail(auth) === "" || getPassword(auth) === "")

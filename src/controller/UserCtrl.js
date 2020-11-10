@@ -5,20 +5,21 @@ const {validationResult} = require("express-validator/check");
 const bcrypt = require("bcrypt");
 const client = require('prom-client');
 
-const register = new client.Registry();
-register.setDefaultLabels({
-    app: 'webapp'
-})
-
 const createUserCounter = new client.Counter({
     name: 'count_create_user',
-    help: 'The total number of create counter requests'
+    help: 'The total number of create user api requests'
 });
 
 const getUserCounter = new client.Counter({
     name: 'count_get_user',
-    help: 'The total number of get counter requests'
+    help: 'The total number of get user api requests'
 });
+
+const updateUserCounter = new client.Counter({
+    name: 'count_update_user',
+    help: 'The total number of update user api requests'
+});
+
 
 const getEmail = function (auth) {
     const tmp = auth.split(' ');
@@ -88,6 +89,7 @@ function validateRequestBody(requestBody) {
 }
 
 exports.updateUser = (req, res) => {
+    updateUserCounter.inc();
     try {
         const auth = req.headers['authorization'];
         if (!auth || getEmail(auth) === "" || getPassword(auth) === "")
