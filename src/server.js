@@ -1,8 +1,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const http = require("http");
+const client = require("prom-client");
 const app = express();
-const log4js = require('log4js');
 
 const db = require("./db/db-config");
 db.sequelize.sync({force: false}).then(() => {
@@ -15,6 +15,11 @@ app.use(bodyParser.urlencoded({ extended: true, parameterLimit: 50000 }))
 
 let initApp = require('./route/app-route');
 initApp(app);
+
+app.get('/metrics', (req, res) => {
+    res.set('Content-Type', client.register.contentType);
+    res.end(client.register.metrics())
+});
 
 const port = process.env.PORT || 3000;
 

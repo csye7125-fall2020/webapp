@@ -3,6 +3,22 @@ const userService = require("../service/UserService");
 const passwordValidator = require('password-validator');
 const {validationResult} = require("express-validator/check");
 const bcrypt = require("bcrypt");
+const client = require('prom-client');
+
+const register = new client.Registry();
+register.setDefaultLabels({
+    app: 'webapp'
+})
+
+const createUserCounter = new client.Counter({
+    name: 'count_create_user',
+    help: 'The total number of create counter requests'
+});
+
+const getUserCounter = new client.Counter({
+    name: 'count_get_user',
+    help: 'The total number of get counter requests'
+});
 
 const getEmail = function (auth) {
     const tmp = auth.split(' ');
@@ -26,6 +42,7 @@ function validatePassword(password) {
 }
 
 exports.createUser = (req, res) => {
+    createUserCounter.inc();
     try {
         const errors = validationResult(req);
         if (!req.body || req.body === "")
@@ -117,6 +134,7 @@ exports.updateUser = (req, res) => {
 }
 
 exports.getUserInfoById = (req, res) => {
+    getUserCounter.inc();
     try {
         const resolve_getId = (user) => {
             if(user) {
@@ -143,6 +161,7 @@ exports.getUserInfoById = (req, res) => {
 }
 
 exports.getUserInfo = (req, res) => {
+    getUserCounter.inc();
     try {
         const auth = req.headers['authorization'];
         if (!auth || getEmail(auth) === "" || getPassword(auth) === "")

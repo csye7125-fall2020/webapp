@@ -27,6 +27,18 @@ rdsdata:
 initialDelaySeconds: 15
 periodSeconds: 30
 
+serviceAccount:
+  name: webapp-sa
+
+rbac:
+  create: true
+
+role:
+  name: webapp-role
+
+roleBinding:
+  name: webapp-rb
+
 nodeSelector: {}
 
 tolerations: []
