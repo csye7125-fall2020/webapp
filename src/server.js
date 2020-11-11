@@ -3,7 +3,6 @@ const bodyParser = require("body-parser");
 const http = require("http");
 const client = require("prom-client");
 const app = express();
-
 const register = new client.Registry();
 
 const collectDefaultMetrics = client.collectDefaultMetrics;

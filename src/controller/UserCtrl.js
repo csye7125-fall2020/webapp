@@ -20,6 +20,10 @@ const updateUserCounter = new client.Counter({
     help: 'The total number of update user api requests'
 });
 
+const dbHistogram = new client.Histogram({
+    name: 'timed_db_calls',
+    help: 'The time taken to process database queries'
+});
 
 const getEmail = function (auth) {
     const tmp = auth.split(' ');
@@ -46,20 +50,32 @@ exports.createUser = (req, res) => {
     createUserCounter.inc();
     try {
         const errors = validationResult(req);
-        if (!req.body || req.body === "")
+        if (!req.body || req.body === "") {
+            console.error(constants.BAD_REQUEST);
             return res.status(400).json({response: constants.BAD_REQUEST});
-        if (validateRequestBody(req.body))
+        }
+        if (validateRequestBody(req.body)) {
+            console.error(constants.BAD_REQUEST);
             return res.status(400).json({response: constants.BAD_REQUEST});
-        if (!errors.isEmpty() || !validatePassword(req.body.password))
+        }
+        if (!errors.isEmpty() || !validatePassword(req.body.password)) {
+            console.error(constants.BAD_REQUEST);
             return res.status(400).json({response: constants.BAD_REQUEST})
+        }
 
+        const end = dbHistogram.startTimer();
         userService
             .isUserExist(req.body.username)
             .then(data => {
-                if (data.length)
+                if (data.length) {
+                    console.error(constants.USER_ALREADY_EXIST);
                     return res.status(422).json({response: constants.USER_ALREADY_EXIST});
+                }
                 const user = Object.assign({}, req.body);
                 const resolve = (data) => {
+                    const sec = end();
+                    console.log("Create User Response Time: ", sec);
+                    console.log(constants.USER_CREATION_SUCCESS);
                     res.status(201).json({
                         message: constants.USER_CREATION_SUCCESS,
                         user: {
@@ -72,14 +88,20 @@ exports.createUser = (req, res) => {
                         }
                     });
                 }
+
                 userService
                     .createUser(user)
                     .then(resolve)
                     .catch(error => {
+                        console.error(error.message);
                         res.status(400).json({response: error.message});
                     });
-            }).catch(error => res.status(400).json({response: error.message}));
+            }).catch(error => {
+            console.error(error.message);
+            res.status(400).json({response: error.message});
+        });
     } catch (error) {
+        console.error(error.message);
         res.status(400).json({response: error.message});
     }
 }
@@ -104,6 +126,9 @@ exports.updateUser = (req, res) => {
             return res.status(400).json({response: constants.BAD_REQUEST});
 
         const resolve_update = (updated_record) => {
+            const sec = end();
+            console.log("Update User Response Time: ", sec);
+
             return res.status(200).json({
                 message: constants.UPDATE_SUCCESS,
                 affected_record: updated_record[0]
@@ -111,26 +136,41 @@ exports.updateUser = (req, res) => {
         }
 
         const resolve = (user) => {
-            if (!user) return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+            if (!user) {
+                console.error(constants.ACCESS_FORBIDDEN);
+                return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+            }
             bcrypt.compare(getPassword(auth), user[0].password, (err, resp) => {
-                if (err)
+                if (err){
+                    console.error(constants.ACCESS_FORBIDDEN);
                     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
-                if (!resp)
+                }
+                if (!resp){
+                    console.error(constants.ACCESS_FORBIDDEN);
                     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+                }
 
                 req.body.username = getEmail(auth);
                 userService
                     .updateUser(req.body, user[0])
                     .then(resolve_update)
-                    .catch(error => res.status(400).json({response: error.message}));
+                    .catch(error => {
+                        console.error(error.message);
+                        res.status(400).json({response: error.message})
+                    });
             });
         }
 
+        const end = dbHistogram.startTimer();
         userService.isUserExist(getEmail(auth))
             .then(resolve)
-            .catch(error => res.status(400).json({response: error.message}));
+            .catch(error => {
+                console.error(error.message);
+                res.status(400).json({response: error.message})
+            });
 
     } catch (error) {
+        console.error(error.message);
         return res.status(400).json({response: error.message});
     }
 }
@@ -139,25 +179,33 @@ exports.getUserInfoById = (req, res) => {
     getUserCounter.inc();
     try {
         const resolve_getId = (user) => {
-            if(user) {
-               return res.status(200).json({
+            const sec = end();
+            console.log("Get User Information By Id Response Time: ", sec);
+            if (user) {
+                return res.status(200).json({
                     id: user.id,
-                   username: user.username,
+                    username: user.username,
                     firstName: user.firstName,
                     lastName: user.lastName,
                     createdAt: user.createdAt,
                     updatedAt: user.updatedAt
                 });
             }
+            console.error(constants.BAD_REQUEST);
             return res.status(400).json({response: constants.BAD_REQUEST});
         }
 
+        const end = dbHistogram.startTimer();
         userService
-        .getUserInfoById(req.params.id)
-        .then(resolve_getId)
-        .catch(error => res.status(400).json({response: error.message}));
+            .getUserInfoById(req.params.id)
+            .then(resolve_getId)
+            .catch(error => {
+                console.error(error.message);
+                res.status(400).json({response: error.message})
+            });
 
     } catch (error) {
+        console.error(error.message);
         return res.status(400).json({response: error.message});
     }
 }
@@ -166,17 +214,28 @@ exports.getUserInfo = (req, res) => {
     getUserCounter.inc();
     try {
         const auth = req.headers['authorization'];
-        if (!auth || getEmail(auth) === "" || getPassword(auth) === "")
+        if (!auth || getEmail(auth) === "" || getPassword(auth) === ""){
+            console.error(constants.ACCESS_FORBIDDEN);
             return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+        }
 
         const resolve = (user) => {
-            if (!user)
+            const sec = end();
+            console.log("Get User Information Response Time: ", sec);
+
+            if (!user){
+                console.error(constants.ACCESS_FORBIDDEN);
                 return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+            }
             bcrypt.compare(getPassword(auth), user[0].password, (err, resp) => {
-                if (err)
+                if (err){
+                    console.error(constants.ACCESS_FORBIDDEN);
                     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
-                if (!resp)
+                }
+                if (!resp){
+                    console.error(constants.ACCESS_FORBIDDEN);
                     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+                }
 
                 return res.status(200).json({
                     id: user[0].id,
@@ -188,12 +247,16 @@ exports.getUserInfo = (req, res) => {
                 });
             });
         }
+
+        const end = dbHistogram.startTimer();
         userService.isUserExist(getEmail(auth))
             .then(resolve)
             .catch(error => {
+                console.error(error.message);
                 res.status(400).json({response: error.message});
             });
     } catch (error) {
+        console.error(error.message);
         res.status(400).json({response: error.message});
     }
 }

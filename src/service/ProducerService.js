@@ -1,5 +1,5 @@
 const kafka = require('kafka-node');
-const config = require('../kafka/kafka-config');
+const config = require('../kafka/kafkaConfig');
 
 exports.publish = (payloads) => {
     try {
