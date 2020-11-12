@@ -12,11 +12,17 @@ register.setDefaultLabels({
     app: 'webapp'
 })
 
-module.exports = new client.Histogram({
-    name: 'timed_db_calls',
-    help: 'The time taken to process database queries'
-});
+module.exports = {
+    dbHistogram: new client.Histogram({
+                    name: 'timed_db_calls',
+                    help: 'The time taken to process database queries'
+                }),
 
+    kfHistogram: new client.Histogram({
+                    name: 'time_kafka_calls',
+                    help: 'The time taken to process kafka calls'
+                })
+}
 
 const db = require("./db/db-config");
 db.sequelize.sync({force: false}).then(() => {

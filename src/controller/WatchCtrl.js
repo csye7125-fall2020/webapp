@@ -29,8 +29,8 @@ const getWatchCounter = new client.Counter({
     help: 'The total number of get watch api requests'
 });
 
-const dbHistogram = require("../server");
-
+const dbHistogram = require("../server").dbHistogram;
+const kfHistogram = require("../server").kfHistogram;
 
 const getEmail = function (auth) {
     const tmp = auth.split(' ');
@@ -89,12 +89,16 @@ exports.addWatch = (req, res) => {
 
                             watch_data.setDataValue("alerts", alert_data);
 
+                            const end1 = kfHistogram.startTimer();
                             producePayload = [];
                             producePayload.push({
                                 topic: config.kafka_topic,
                                 messages: JSON.stringify(watch_data.dataValues)
                             });
                             producerService.publish(producePayload);
+
+                            const kfSec = end1();
+                            console.log("Kafka add watch response time: ", kfSec);
 
                             res.status(200).json({
                                 message: constants.WATCH_ADD_SUCCESS,
@@ -219,8 +223,11 @@ exports.deleteWatch = (req, res) => {
 }
 
 function publishToKafka(id) {
+    const end = kfHistogram.startTimer();
     watchService.getWatch(id)
         .then(res => {
+            const sec = end();
+            console.log("Kafka response time: ", sec);
             producePayload = [];
             producePayload.push({topic: config.kafka_topic, messages: JSON.stringify(res.dataValues)});
             producerService.publish(producePayload);

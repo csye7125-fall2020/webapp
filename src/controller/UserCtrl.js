@@ -20,7 +20,7 @@ const updateUserCounter = new client.Counter({
     help: 'The total number of update user api requests'
 });
 
-const dbHistogram = require("../server");
+const dbHistogram = require("../server").dbHistogram;
 
 const getEmail = function (auth) {
     const tmp = auth.split(' ');
