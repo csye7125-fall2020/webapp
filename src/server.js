@@ -17,6 +17,12 @@ db.sequelize.sync({force: false}).then(() => {
     console.log("Synchronizing Database...");
 });
 
+
+// const db = require("./db/db-config");
+// db.sequelize.sync({force: false}).then(() => {
+//     console.log("Synchronizing Database...");
+// });
+
 app.use(bodyParser.json());
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true, parameterLimit: 50000 }))

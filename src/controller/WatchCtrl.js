@@ -29,10 +29,7 @@ const getWatchCounter = new client.Counter({
     help: 'The total number of get watch api requests'
 });
 
-const dbHistogram = new client.Histogram({
-    name: 'timed_db_calls',
-    help: 'The time taken to process database queries'
-});
+const dbHistogram = require("../server");
 
 
 const getEmail = function (auth) {
