@@ -12,16 +12,16 @@ register.setDefaultLabels({
     app: 'webapp'
 })
 
+module.exports = new client.Histogram({
+    name: 'timed_db_calls',
+    help: 'The time taken to process database queries'
+});
+
+
 const db = require("./db/db-config");
 db.sequelize.sync({force: false}).then(() => {
     console.log("Synchronizing Database...");
 });
-
-
-// const db = require("./db/db-config");
-// db.sequelize.sync({force: false}).then(() => {
-//     console.log("Synchronizing Database...");
-// });
 
 app.use(bodyParser.json());
 app.use(bodyParser.json({ limit: "50mb" }));
