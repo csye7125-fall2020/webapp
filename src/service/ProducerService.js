@@ -1,11 +1,11 @@
 const kafka = require('kafka-node');
-const config = require('../kafka/kafka-config');
+const config = require('../kafka/kafkaConfig');
 
 exports.publish = (payloads) => {
     try {
         const Producer = kafka.Producer;
         const client = new kafka.KafkaClient({ kafkaHost: config.kafka_host });
-        var options = {
+        const options = {
             // Configuration for when to consider a message as acknowledged, default 1
             requireAcks: 1,
             // The amount of time in milliseconds to wait for all acks before considered, default 100ms
@@ -13,7 +13,7 @@ exports.publish = (payloads) => {
             // Partitioner type (default = 0, random = 1, cyclic = 2, keyed = 3, custom = 4), default 0
             // random = 1 actually works for sending on different partitions
             partitionerType: 1
-        }
+        };
         const producer = new Producer(client, options);
 
         producer.on('ready', async function () {
