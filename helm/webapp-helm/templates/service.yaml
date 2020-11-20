@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: webapp-service
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: {{ .Values.spec.appName }}
   ports:
