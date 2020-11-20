@@ -22,7 +22,7 @@ spec:
         app: {{ .Values.spec.appName }}
       annotations:
         prometheus.io/scrape: 'true'
-        # prometheus.io/path: '/metrics'
+        prometheus.io/path: '/metrics'
         prometheus.io/port: '3000'
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}

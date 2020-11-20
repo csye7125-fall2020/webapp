@@ -9,6 +9,8 @@ const _ = require("lodash");
 const client = require('prom-client');
 let producePayload = [];
 
+const logger = require("../server").logger;
+
 const addWatchCounter = new client.Counter({
     name: 'count_add_watch',
     help: 'The total number of add watch api requests'
@@ -48,32 +50,38 @@ exports.addWatch = (req, res) => {
     const errors = validationResult(req);
 
     if (!auth || getEmail(auth) === "" || getPassword(auth) === "") {
+        logger.error("Access Forbidden");
         console.error(constants.ACCESS_FORBIDDEN);
         return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
     }
 
     if (!req.body || Object.keys(req.body).length === 0) {
+        logger.error("Invalid or Missing required Parameters");
         console.error(constants.BAD_REQUEST);
         return res.status(400).json({response: constants.BAD_REQUEST});
     }
 
     if (!errors.isEmpty()) {
+        logger.error("Invalid or Missing required Parameters");
         console.error(constants.BAD_REQUEST);
         return res.status(400).json({response: constants.BAD_REQUEST});
     }
 
     const resolve = (user) => {
         if (!user) {
+            logger.error("Access Forbidden");
             console.error(constants.ACCESS_FORBIDDEN);
             return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
         }
 
         bcrypt.compare(getPassword(auth), user[0].password, (err, resp) => {
             if (err) {
+                logger.error("Access Forbidden");
                 console.error(constants.ACCESS_FORBIDDEN);
                 return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
             }
             if (!resp) {
+                logger.error("Access Forbidden");
                 console.error(constants.ACCESS_FORBIDDEN);
                 return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
             }
@@ -99,16 +107,19 @@ exports.addWatch = (req, res) => {
 
                             const kfSec = end1();
                             console.log("Kafka add watch response time: ", kfSec);
+                            logger.info("Watch added successfully");
 
                             res.status(200).json({
                                 message: constants.WATCH_ADD_SUCCESS,
                                 watch: watch_data
                             });
                         }).catch(e => {
+                        logger.error(e.message);
                         console.error(e.message);
                         res.status(400).json({response: e.message})
                     });
                 }).catch(e => {
+                logger.error(e.message);
                 console.error(e.message);
                 res.status(400).json({response: e.message})
             });
@@ -119,6 +130,7 @@ exports.addWatch = (req, res) => {
     userService.isUserExist(getEmail(auth))
         .then(resolve)
         .catch(error => {
+            logger.error(error.message);
             console.error(error.message);
             res.status(400).json({response: error.message})
         });
@@ -129,22 +141,26 @@ exports.getWatch = (req, res) => {
     const auth = req.headers['authorization'];
 
     if (!auth || getEmail(auth) === "" || getPassword(auth) === "") {
+        logger.error("Access forbidden");
         console.error(constants.ACCESS_FORBIDDEN);
         return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
     }
 
     const resolve = (user) => {
         if (!user) {
+            logger.error("Access forbidden");
             console.error(constants.ACCESS_FORBIDDEN);
             return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
         }
 
         bcrypt.compare(getPassword(auth), user[0].password, (err, resp) => {
             if (err) {
+                logger.error("Access forbidden");
                 console.error(constants.ACCESS_FORBIDDEN);
                 return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
             }
             if (!resp) {
+                logger.error("Access forbidden");
                 console.error(constants.ACCESS_FORBIDDEN);
                 return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
             }
@@ -155,11 +171,14 @@ exports.getWatch = (req, res) => {
                     console.info("Get watch response time: ", sec);
 
                     if (!watch_data) {
-                        console.warn(constants.WATCH_NOT_FOUND);
+                        logger.error("Watch not found");
+                        console.error(constants.WATCH_NOT_FOUND);
                         return res.status(404).json({response: constants.WATCH_NOT_FOUND});
                     }
+                    logger.info("Watch information fetch success");
                     res.status(200).json({response: watch_data});
                 }).catch(e => {
+                logger.error(e.message);
                 console.error(e.message);
                 res.status(400).json({response: e.message})
             });
@@ -177,22 +196,26 @@ exports.deleteWatch = (req, res) => {
     const auth = req.headers['authorization'];
 
     if (!auth || getEmail(auth) === "" || getPassword(auth) === "") {
+        logger.error("Access forbidden");
         console.error(constants.ACCESS_FORBIDDEN);
         return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
     }
 
     const resolve = (user) => {
         if (!user) {
+            logger.error("Access forbidden");
             console.error(constants.ACCESS_FORBIDDEN);
             return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
         }
 
         bcrypt.compare(getPassword(auth), user[0].password, (err, resp) => {
             if (err) {
+                logger.error("Access forbidden");
                 console.error(constants.ACCESS_FORBIDDEN);
                 return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
             }
             if (!resp) {
+                logger.error("Access forbidden");
                 console.error(constants.ACCESS_FORBIDDEN);
                 return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
             }
@@ -203,13 +226,15 @@ exports.deleteWatch = (req, res) => {
                     console.info("Delete watch response time: ", sec);
 
                     if (!watch_data) {
-                        console.warn(constants.WATCH_NOT_FOUND);
+                        logger.error("Watch not found");
+                        console.error(constants.WATCH_NOT_FOUND);
                         return res.status(404).json({response: constants.WATCH_NOT_FOUND});
                     }
                     publishToKafka(req.params.id);
-
+                    console.info("Watch deleted successfully");
                     res.status(201).json({response: constants.WATCH_DELETE_SUCCESS});
                 }).catch(e => {
+                logger.error(e.message);
                 console.error(e.message);
                 res.status(400).json({response: e.message})
             });
@@ -239,33 +264,39 @@ exports.updateWatch = (req, res) => {
     const auth = req.headers['authorization'];
 
     if (!auth || getEmail(auth) === "" || getPassword(auth) === ""){
+        logger.error("Access forbidden");
         console.error(constants.ACCESS_FORBIDDEN);
         return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
     }
 
     if (!req.body || Object.keys(req.body).length === 0){
+        logger.error("Found no fields to update");
         console.error(constants.UPDATE_BODY_EMPTY);
         return res.status(400).json({response: constants.UPDATE_BODY_EMPTY});
     }
 
     const resolve = (user) => {
         if (!user){
+            logger.error("Access forbidden");
             console.error(constants.ACCESS_FORBIDDEN);
             return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
         }
 
         bcrypt.compare(getPassword(auth), user[0].password, (err, resp) => {
             if (err){
+                logger.error("Access forbidden");
                 console.error(constants.ACCESS_FORBIDDEN);
                 return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
             }
             if (!resp){
+                logger.error("Access forbidden");
                 console.error(constants.ACCESS_FORBIDDEN);
                 return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
             }
 
             const resolve_getAlert = (existing_alert) => {
                 if (!existing_alert){
+                    logger.error("Alert not found");
                     console.error(constants.ALERT_NOT_FOUND);
                     return res.status(404).json({response: constants.ALERT_NOT_FOUND});
                 }
@@ -273,6 +304,7 @@ exports.updateWatch = (req, res) => {
                 watchService.updateAlert(existing_alert, req.body.alerts)
                     .then(resp => {
                         publishToKafka(req.params.id);
+                        logger.info("Watch updated successfully");
                         console.info(constants.WATCH_UPDATE_SUCCESS);
                         res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS});
                     }).catch(e => res.status(400).json({response: e.message}));
@@ -280,7 +312,8 @@ exports.updateWatch = (req, res) => {
 
             const resolve_getWatch = (watch_data) => {
                 if (!watch_data){
-                    console.warn(constants.WATCH_NOT_FOUND);
+                    logger.error("Watch not found");
+                    console.error(constants.WATCH_NOT_FOUND);
                     return res.status(404).json({response: constants.WATCH_NOT_FOUND});
                 }
 
@@ -299,6 +332,7 @@ exports.updateWatch = (req, res) => {
 
                                         console.log("all new alerts inserted successfully");
                                         publishToKafka(req.params.id);
+                                        logger.info("Watch updated successfully");
                                         res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS});
                                     }).catch(e => e => res.status(400).json({response: e.message}));
                             } else {
@@ -313,6 +347,7 @@ exports.updateWatch = (req, res) => {
 
                                                 console.log("some new alerts inserted successfully");
                                                 publishToKafka(req.params.id);
+                                                logger.info("Watch updated successfully");
                                                 res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS});
                                             }).catch(e => e => res.status(400).json({response: e.message}));
                                     })
@@ -320,6 +355,7 @@ exports.updateWatch = (req, res) => {
                             }
                         } else {
                             publishToKafka(req.params.id);
+                            logger.info("Watch updated successfully");
                             console.info(constants.WATCH_UPDATE_SUCCESS);
                             return res.status(201).json({response: constants.WATCH_UPDATE_SUCCESS});
                         }
