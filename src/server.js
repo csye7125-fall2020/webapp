@@ -3,38 +3,8 @@ const bodyParser = require("body-parser");
 const http = require("http");
 const client = require("prom-client");
 const app = express();
-const register = new client.Registry();
-const log4js = require('log4js');
+const logger = require('./util/logger_util').logger;
 
-log4js.configure({
-    appenders: {
-        err: { type: 'stderr' },
-        out: { type: 'stdout' }
-    },
-    categories: { default: { appenders: ['err', 'out'], level: 'info' } }
-});
-
-const logger = log4js.getLogger("webapp");
-
-const collectDefaultMetrics = client.collectDefaultMetrics;
-collectDefaultMetrics({ register });
-
-register.setDefaultLabels({
-    app: 'webapp'
-})
-
-module.exports = {
-    dbHistogram: new client.Histogram({
-                    name: 'timed_db_calls',
-                    help: 'The time taken to process database queries'
-                }),
-
-    kfHistogram: new client.Histogram({
-                    name: 'time_kafka_calls',
-                    help: 'The time taken to process kafka calls'
-                }),
-    logger: logger
-}
 
 const db = require("./db/db-config");
 db.sequelize.sync({force: false}).then(() => {

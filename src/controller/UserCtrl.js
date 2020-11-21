@@ -4,25 +4,25 @@ const passwordValidator = require('password-validator');
 const {validationResult} = require("express-validator/check");
 const bcrypt = require("bcrypt");
 const client = require('prom-client');
-
-const logger = require("../server").logger;
+const metrics_util = require("../util/metrics_util");
+const logger = require("../util/logger_util").logger;
 
 const createUserCounter = new client.Counter({
-    name: 'count_create_user',
+    name: 'webapp_count_create_user',
     help: 'The total number of create user api requests'
 });
 
 const getUserCounter = new client.Counter({
-    name: 'count_get_user',
+    name: 'webapp_count_get_user',
     help: 'The total number of get user api requests'
 });
 
 const updateUserCounter = new client.Counter({
-    name: 'count_update_user',
+    name: 'webapp_count_update_user',
     help: 'The total number of update user api requests'
 });
 
-const dbHistogram = require("../server").dbHistogram;
+const dbHistogram = metrics_util.dbHistogram;
 
 const getEmail = function (auth) {
     const tmp = auth.split(' ');
