@@ -7,32 +7,34 @@ const constants = require("../constants");
 const bcrypt = require("bcrypt");
 const _ = require("lodash");
 const client = require('prom-client');
+const metrics_util = require("../util/metrics_util");
+
 let producePayload = [];
 
-const logger = require("../server").logger;
+const logger = require("../util/logger_util").logger;
 
 const addWatchCounter = new client.Counter({
-    name: 'count_add_watch',
+    name: 'webapp_count_add_watch',
     help: 'The total number of add watch api requests'
 });
 
 const updateWatchCounter = new client.Counter({
-    name: 'count_update_watch',
+    name: 'webapp_count_update_watch',
     help: 'The total number of update watch api requests'
 });
 
 const deleteWatchCounter = new client.Counter({
-    name: 'count_delete_watch',
+    name: 'webapp_count_delete_watch',
     help: 'The total number of delete watch api requests'
 });
 
 const getWatchCounter = new client.Counter({
-    name: 'count_get_watch',
+    name: 'webapp_count_get_watch',
     help: 'The total number of get watch api requests'
 });
 
-const dbHistogram = require("../server").dbHistogram;
-const kfHistogram = require("../server").kfHistogram;
+const dbHistogram = metrics_util.dbHistogram;
+const kfHistogram = metrics_util.kfHistogram;
 
 const getEmail = function (auth) {
     const tmp = auth.split(' ');
