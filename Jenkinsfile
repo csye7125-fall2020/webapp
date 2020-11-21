@@ -26,16 +26,6 @@ pipeline {
         sh "kubectl get pod"
       }
     }
-    /*
-    stage('Install helm') {
-      steps {
-        //Installing helm in Jenkins agent
-        sh 'curl -LO https://get.helm.sh/helm-v3.3.4-linux-amd64.tar.gz'
-        sh 'tar -zxvf helm-v3.3.4-linux-amd64.tar.gz'
-        //sh 'chmod +x ./linux-amd64/helm && sudo mv linux-amd64/helm /usr/local/bin/helm'
-        sh 'chmod +x linux-amd64/helm'
-      }
-    }*/
     stage('Cloning Git') {
       steps {
         git credentialsId: 'git_fork_private_key', url: "${env.GIT_URL}"
