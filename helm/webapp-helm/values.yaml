@@ -39,6 +39,16 @@ role:
 roleBinding:
   name: webapp-rb
 
+prometheus:
+  scrape: 'true'
+  path: '/metrics'
+  port: '3000'
+
+hpa:
+  minReplicas: 1
+  maxReplicas: 2
+  averageUtilization: 5
+
 nodeSelector: {}
 
 tolerations: []

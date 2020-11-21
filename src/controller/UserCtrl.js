@@ -5,6 +5,8 @@ const {validationResult} = require("express-validator/check");
 const bcrypt = require("bcrypt");
 const client = require('prom-client');
 
+const logger = require("../server").logger;
+
 const createUserCounter = new client.Counter({
     name: 'count_create_user',
     help: 'The total number of create user api requests'
@@ -48,15 +50,20 @@ exports.createUser = (req, res) => {
     try {
         const errors = validationResult(req);
         if (!req.body || req.body === "") {
+
             console.error(constants.BAD_REQUEST);
+            logger.error("Invalid or Missing required Parameters");
+
             return res.status(400).json({response: constants.BAD_REQUEST});
         }
         if (validateRequestBody(req.body)) {
             console.error(constants.BAD_REQUEST);
+            logger.error("Invalid or Missing required Parameters");
             return res.status(400).json({response: constants.BAD_REQUEST});
         }
         if (!errors.isEmpty() || !validatePassword(req.body.password)) {
             console.error(constants.BAD_REQUEST);
+            logger.error("Invalid or Missing required Parameters");
             return res.status(400).json({response: constants.BAD_REQUEST})
         }
 
@@ -66,6 +73,7 @@ exports.createUser = (req, res) => {
             .then(data => {
                 if (data.length) {
                     console.error(constants.USER_ALREADY_EXIST);
+                    logger.error("User already exist");
                     return res.status(422).json({response: constants.USER_ALREADY_EXIST});
                 }
                 const user = Object.assign({}, req.body);
@@ -73,6 +81,7 @@ exports.createUser = (req, res) => {
                     const sec = end();
                     console.log("Create User Response Time: ", sec);
                     console.log(constants.USER_CREATION_SUCCESS);
+                    logger.info("User created successfully");
                     res.status(201).json({
                         message: constants.USER_CREATION_SUCCESS,
                         user: {
@@ -91,14 +100,17 @@ exports.createUser = (req, res) => {
                     .then(resolve)
                     .catch(error => {
                         console.error(error.message);
+                        logger.error(error.message);
                         res.status(400).json({response: error.message});
                     });
             }).catch(error => {
             console.error(error.message);
+            logger.error(error.message);
             res.status(400).json({response: error.message});
         });
     } catch (error) {
         console.error(error.message);
+        logger.error(error.message);
         res.status(400).json({response: error.message});
     }
 }
@@ -111,21 +123,27 @@ exports.updateUser = (req, res) => {
     updateUserCounter.inc();
     try {
         const auth = req.headers['authorization'];
-        if (!auth || getEmail(auth) === "" || getPassword(auth) === "")
+        if (!auth || getEmail(auth) === "" || getPassword(auth) === "") {
+            logger.error("Access Forbidden");
             return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
+        }
 
-        if (!req.body || Object.keys(req.body).length === 0)
+        if (!req.body || Object.keys(req.body).length === 0){
+            logger.error("Invalid or Missing required Parameters");
             return res.status(400).json({response: constants.BAD_REQUEST});
+        }
 
         if (validateRequestBody(req.body)
             || req.body.hasOwnProperty('username')
-            || (req.body.password && !validatePassword(req.body.password)))
+            || (req.body.password && !validatePassword(req.body.password))){
+            logger.error("Invalid or Missing required Parameters");
             return res.status(400).json({response: constants.BAD_REQUEST});
+        }
 
         const resolve_update = (updated_record) => {
             const sec = end();
             console.log("Update User Response Time: ", sec);
-
+            logger.info("User information updated Successfully");
             return res.status(200).json({
                 message: constants.UPDATE_SUCCESS,
                 affected_record: updated_record[0]
@@ -134,15 +152,18 @@ exports.updateUser = (req, res) => {
 
         const resolve = (user) => {
             if (!user) {
+                logger.error("Access Forbidden");
                 console.error(constants.ACCESS_FORBIDDEN);
                 return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
             }
             bcrypt.compare(getPassword(auth), user[0].password, (err, resp) => {
                 if (err){
+                    logger.error("Access Forbidden");
                     console.error(constants.ACCESS_FORBIDDEN);
                     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
                 }
                 if (!resp){
+                    logger.error("Access Forbidden");
                     console.error(constants.ACCESS_FORBIDDEN);
                     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
                 }
@@ -152,6 +173,7 @@ exports.updateUser = (req, res) => {
                     .updateUser(req.body, user[0])
                     .then(resolve_update)
                     .catch(error => {
+                        logger.error(error.message);
                         console.error(error.message);
                         res.status(400).json({response: error.message})
                     });
@@ -163,11 +185,13 @@ exports.updateUser = (req, res) => {
             .then(resolve)
             .catch(error => {
                 console.error(error.message);
+                logger.error(error.message);
                 res.status(400).json({response: error.message})
             });
 
     } catch (error) {
         console.error(error.message);
+        logger.error(error.message);
         return res.status(400).json({response: error.message});
     }
 }
@@ -179,6 +203,7 @@ exports.getUserInfoById = (req, res) => {
             const sec = end();
             console.log("Get User Information By Id Response Time: ", sec);
             if (user) {
+                logger.info("User information fetch success ");
                 return res.status(200).json({
                     id: user.id,
                     username: user.username,
@@ -189,6 +214,7 @@ exports.getUserInfoById = (req, res) => {
                 });
             }
             console.error(constants.BAD_REQUEST);
+            logger.error("Invalid or Missing required Parameters");
             return res.status(400).json({response: constants.BAD_REQUEST});
         }
 
@@ -198,11 +224,13 @@ exports.getUserInfoById = (req, res) => {
             .then(resolve_getId)
             .catch(error => {
                 console.error(error.message);
+                logger.error(error.message);
                 res.status(400).json({response: error.message})
             });
 
     } catch (error) {
         console.error(error.message);
+        logger.error(error.message);
         return res.status(400).json({response: error.message});
     }
 }
@@ -213,6 +241,7 @@ exports.getUserInfo = (req, res) => {
         const auth = req.headers['authorization'];
         if (!auth || getEmail(auth) === "" || getPassword(auth) === ""){
             console.error(constants.ACCESS_FORBIDDEN);
+            logger.error("Access Forbidden");
             return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
         }
 
@@ -221,19 +250,22 @@ exports.getUserInfo = (req, res) => {
             console.log("Get User Information Response Time: ", sec);
 
             if (!user){
+                logger.error("Access Forbidden");
                 console.error(constants.ACCESS_FORBIDDEN);
                 return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
             }
             bcrypt.compare(getPassword(auth), user[0].password, (err, resp) => {
                 if (err){
+                    logger.error("Access Forbidden");
                     console.error(constants.ACCESS_FORBIDDEN);
                     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
                 }
                 if (!resp){
+                    logger.error("Access Forbidden");
                     console.error(constants.ACCESS_FORBIDDEN);
                     return res.status(401).json({response: constants.ACCESS_FORBIDDEN});
                 }
-
+                logger.info("User information fetch success ");
                 return res.status(200).json({
                     id: user[0].id,
                     firstName: user[0].firstName,
@@ -250,10 +282,12 @@ exports.getUserInfo = (req, res) => {
             .then(resolve)
             .catch(error => {
                 console.error(error.message);
+                logger.error(error.message);
                 res.status(400).json({response: error.message});
             });
     } catch (error) {
         console.error(error.message);
+        logger.error(error.message);
         res.status(400).json({response: error.message});
     }
 }
