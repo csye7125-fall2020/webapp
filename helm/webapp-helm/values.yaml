@@ -47,7 +47,7 @@ prometheus:
 hpa:
   minReplicas: 1
   maxReplicas: 2
-  averageUtilization: 5
+  averageUtilization: 10
 
 nodeSelector: {}
 
