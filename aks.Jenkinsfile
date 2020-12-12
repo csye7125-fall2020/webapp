@@ -21,7 +21,7 @@ pipeline {
     stage('Export KubeConfig Credentials ') {
       steps {
         //Exporting kubeConfig for kubectl so helm can upgrade
-        sh 'az aks get-credentials --name ${env.AKS_CLUSTER_NAME} --resource-group ${env.AKS_RESOURCE_GROUP} --file /home/ubuntu/.kube/config'
+        sh 'az aks get-credentials --name ${env.AKS_CLUSTER_NAME} --resource-group ${env.AKS_RESOURCE_GROUP}'
       }
     }
     stage('Show kubectl nodes') {
